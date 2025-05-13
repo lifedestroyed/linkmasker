@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting... - LinkMasker.ld</title>
+    <script>
+        // Сохраняем оригинальный путь
+        const originalPath = window.location.pathname;
+        
+        // Перенаправляем на index.html с сохранением пути
+        window.location.href = `/index.html${originalPath}`;
+    </script>
+</head>
+<body>
+    <noscript>
+        <h1>JavaScript Required</h1>
+        <p>Please enable JavaScript to use LinkMasker service.</p>
+    </noscript>
+    
+    <div style="text-align: center; margin-top: 2rem;">
+        <h2>🔄 Processing masked link...</h2>
+        <p>If redirect doesn't happen automatically, <a href="/index.html">click here</a></p>
+    </div>
+</body>
+</html>
