@@ -119,61 +119,62 @@
     </div>
 
     <script>
-    // Custom Base64 encoding with URL-safe characters
-		const encode = (str) => {
-			return btoa(encodeURIComponent(str))
-				.replace(/\+/g, '-')
-				.replace(/\//g, '_')
-				.replace(/=+$/g, '');
-		}
-	
-		const decode = (str) => {
-			str = str.replace(/-/g, '+').replace(/_/g, '/');
-			while (str.length % 4) str += '=';
-			return decodeURIComponent(atob(str));
-		}
-	
-		// Handle masked URLs
-		const pathSegments = window.location.pathname.split('/');
-		const repoName = 'linkmasker'; // Название репозитория
-		const encodedPath = pathSegments[pathSegments.indexOf(repoName) + 1];
+        const REPO_NAME = 'linkmasker'; // Название репозитория
 
-		if(encodedPath) {
-			document.getElementById('maskForm').style.display = 'none';
-			document.getElementById('maskInfo').style.display = 'block';
+        // Кодирование/декодирование URL
+        const encode = (str) => {
+            return btoa(encodeURIComponent(str))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/g, '');
+        };
 
-			try {
-				const decodedUrl = decode(encodedPath);
+        const decode = (str) => {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) str += '=';
+            return decodeURIComponent(atob(str));
+        };
+
+        // Обработка замаскированных URL
+        const pathSegments = window.location.pathname.split('/');
+        const encodedPath = pathSegments[pathSegments.indexOf(REPO_NAME) + 1];
+
+        if (encodedPath) {
+            document.getElementById('maskForm').style.display = 'none';
+            document.getElementById('maskInfo').style.display = 'block';
+
+            try {
+                const decodedUrl = decode(encodedPath);
+                
+                let seconds = 3;
+                const countdownElement = document.getElementById('countdown');
+                const countdown = setInterval(() => {
+                    seconds--;
+                    countdownElement.textContent = seconds;
+                    if (seconds <= 0) {
+                        clearInterval(countdown);
+                        window.location.href = decodedUrl;
+                    }
+                }, 1000);
+            } catch {
+                document.getElementById('maskInfo').innerHTML = 
+                    '<p class="error">Invalid masked link</p>';
+            }
+        }
+
+        // Генерация ссылки с учетом репозитория
+        document.getElementById('maskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const originalUrl = document.getElementById('originalUrl').value;
+            const maskedPath = encode(originalUrl);
+            const maskedLink = `${window.location.origin}/${REPO_NAME}/${maskedPath}`;
             
-				let seconds = 3;
-				const countdownElement = document.getElementById('countdown');
-				const countdown = setInterval(() => {
-					seconds--;
-					countdownElement.textContent = seconds;
-					if (seconds <= 0) {
-						clearInterval(countdown);
-						window.location.href = decodedUrl;
-					}
-				}, 1000);
-			} catch {
-				document.getElementById('maskInfo').innerHTML = 
-					'<p class="error">Invalid masked link</p>';
-			}
-		}
-	
-    // Handle form submission
-		document.getElementById('maskForm').addEventListener('submit', (e) => {
-			e.preventDefault();
-			const originalUrl = document.getElementById('originalUrl').value;
-			const maskedPath = encode(originalUrl);
-			const maskedLink = `${window.location.origin}/${repoName}/${maskedPath}`;
-			
-			document.getElementById('result').innerHTML = `
-				Your masked link:<br>
-				<a href="${maskedLink}" target="_blank">${maskedLink}</a>
-				<p class="notice">Bookmark this link - it cannot be recovered!</p>
-			`;
-		});
-	</script>
+            document.getElementById('result').innerHTML = `
+                Your masked link:<br>
+                <a href="${maskedLink}" target="_blank">${maskedLink}</a>
+                <p class="notice">Bookmark this link - it cannot be recovered!</p>
+            `;
+        });
+    </script>
 </body>
 </html>
