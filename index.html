@@ -88,13 +88,16 @@
             padding: 1rem;
             margin: 1rem 0;
         }
+
+        .error {
+            color: #ff4444;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="logo">LinkMasker.ld</h1>
 
-        <!-- Main Form -->
         <form id="maskForm">
             <input type="url" 
                    id="originalUrl" 
@@ -103,10 +106,8 @@
             <button type="submit">Generate Masked Link</button>
         </form>
 
-        <!-- Result Section -->
         <div class="result" id="result"></div>
 
-        <!-- Mask Information -->
         <div class="mask-info" id="maskInfo">
             <div class="embed-message">
                 MaskedLink.ld<br><br>
@@ -119,60 +120,60 @@
     </div>
 
     <script>
-        const REPO_NAME = 'linkmasker'; // Название репозитория
-
-        // Кодирование/декодирование URL
-        const encode = (str) => {
+        const REPO_PATH = '/linkmasker/';
+        
+        const encode = str => {
             return btoa(encodeURIComponent(str))
                 .replace(/\+/g, '-')
                 .replace(/\//g, '_')
                 .replace(/=+$/g, '');
         };
 
-        const decode = (str) => {
+        const decode = str => {
             str = str.replace(/-/g, '+').replace(/_/g, '/');
             while (str.length % 4) str += '=';
             return decodeURIComponent(atob(str));
         };
 
-        // Обработка замаскированных URL
-        const pathSegments = window.location.pathname.split('/');
-        const encodedPath = pathSegments[pathSegments.indexOf(REPO_NAME) + 1];
+        // Обработка текущего URL
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith(REPO_PATH)) {
+            const encodedPart = currentPath.slice(REPO_PATH.length);
+            if (encodedPart) {
+                document.getElementById('maskForm').style.display = 'none';
+                document.getElementById('maskInfo').style.display = 'block';
 
-        if (encodedPath) {
-            document.getElementById('maskForm').style.display = 'none';
-            document.getElementById('maskInfo').style.display = 'block';
-
-            try {
-                const decodedUrl = decode(encodedPath);
-                
-                let seconds = 3;
-                const countdownElement = document.getElementById('countdown');
-                const countdown = setInterval(() => {
-                    seconds--;
-                    countdownElement.textContent = seconds;
-                    if (seconds <= 0) {
-                        clearInterval(countdown);
-                        window.location.href = decodedUrl;
-                    }
-                }, 1000);
-            } catch {
-                document.getElementById('maskInfo').innerHTML = 
-                    '<p class="error">Invalid masked link</p>';
+                try {
+                    const decodedUrl = decode(encodedPart);
+                    let seconds = 3;
+                    const countdownElement = document.getElementById('countdown');
+                    
+                    const countdown = setInterval(() => {
+                        seconds--;
+                        countdownElement.textContent = seconds;
+                        if (seconds <= 0) {
+                            clearInterval(countdown);
+                            window.location.href = decodedUrl;
+                        }
+                    }, 1000);
+                } catch {
+                    document.getElementById('maskInfo').innerHTML = 
+                        '<p class="error">Invalid masked link</p>';
+                }
             }
         }
 
-        // Генерация ссылки с учетом репозитория
-        document.getElementById('maskForm').addEventListener('submit', (e) => {
+        // Обработка формы
+        document.getElementById('maskForm').addEventListener('submit', e => {
             e.preventDefault();
             const originalUrl = document.getElementById('originalUrl').value;
-            const maskedPath = encode(originalUrl);
-            const maskedLink = `${window.location.origin}/${REPO_NAME}/${maskedPath}`;
+            const maskedPath = REPO_PATH + encode(originalUrl);
+            const maskedLink = window.location.origin + maskedPath;
             
             document.getElementById('result').innerHTML = `
                 Your masked link:<br>
                 <a href="${maskedLink}" target="_blank">${maskedLink}</a>
-                <p class="notice">Bookmark this link - it cannot be recovered!</p>
+                <p class="notice">⚠️ Bookmark this link - it cannot be recovered!</p>
             `;
         });
     </script>

@@ -1,18 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <script>
-        const REPO_NAME = 'linkmasker';
-        const path = window.location.pathname;
+        const REPO_PATH = '/linkmasker/';
+        const currentPath = window.location.pathname;
         
-        if (path.includes(REPO_NAME)) {
-            window.location.href = `/index.html${path}`;
+        if (currentPath.startsWith(REPO_PATH)) {
+            const encodedPart = currentPath.slice(REPO_PATH.length);
+            window.location.href = `${REPO_PATH}index.html/${encodedPart}`;
         } else {
-            window.location.href = `/${REPO_NAME}/index.html${path}`;
+            window.location.href = REPO_PATH;
         }
     </script>
 </head>
 <body>
-    Redirecting...
+    <noscript>
+        <h1>JavaScript Required</h1>
+        <p>Please enable JavaScript to use the LinkMasker service.</p>
+    </noscript>
+    
+    <div style="text-align: center; margin-top: 5rem;">
+        <h2>🔄 Processing your request...</h2>
+        <p>If redirect doesn't work, <a href="/linkmasker/">click here</a></p>
+    </div>
 </body>
 </html>
