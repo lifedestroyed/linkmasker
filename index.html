@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinkMasker.ld</title>
+    <title>LD Link Masker</title>
     <style>
         :root {
             --bg: #0d1117;
@@ -11,171 +11,158 @@
             --text: #c9d1d9;
             --accent: #58a6ff;
             --border: #30363d;
+            --error: #da3633;
+        }
+
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg: #ffffff;
+                --surface: #f6f8fa;
+                --text: #24292f;
+                --border: #d0d7de;
+                --accent: #0969da;
+            }
         }
 
         body {
             background: var(--bg);
             color: var(--text);
-            font-family: 'Inter', sans-serif;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             padding: 2rem;
-            text-align: center;
+            line-height: 1.6;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         .container {
-            max-width: 600px;
-            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
         }
 
-        .logo {
+        h1 {
             font-size: 2.5rem;
-            margin-bottom: 2rem;
-            background: linear-gradient(45deg, #008dff, #a151ff);
+            text-align: center;
+            background: linear-gradient(90deg, #008dff, #a151ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
         }
 
-        form {
-            background: var(--surface);
-            padding: 2rem;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
         }
 
-        input[type="url"] {
-            width: 100%;
+        input[type="text"] {
+            flex: 1;
             padding: 1rem;
+            background: var(--bg);
             border: 2px solid var(--border);
             border-radius: 0.5rem;
-            background: var(--bg);
             color: var(--text);
-            margin-bottom: 1rem;
         }
 
         button {
-            background: #007bff;
+            background: var(--accent);
             color: white;
             border: none;
             padding: 1rem 2rem;
             border-radius: 0.5rem;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.2s;
         }
 
         button:hover {
-            background: #0056b3;
+            transform: translateY(-2px);
         }
 
-        .result {
+        .result-box {
             margin-top: 2rem;
-            word-break: break-all;
-        }
-
-        .mask-info {
-            display: none;
+            padding: 1.5rem;
             background: var(--surface);
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-top: 2rem;
+            border-radius: 0.5rem;
+            position: relative;
         }
 
-        .embed-message {
-            font-family: monospace;
-            border: 1px solid var(--border);
+        .security-alert {
+            color: #ffa500;
+            border: 2px solid #ffa50040;
             padding: 1rem;
-            margin: 1rem 0;
-        }
-
-        .error {
-            color: #ff4444;
+            border-radius: 8px;
+            margin: 2rem 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="logo">LinkMasker.ld</h1>
+        <h1>ld://linkmasker</h1>
+        
+        <div class="input-group">
+            <input type="text" id="originalUrl" placeholder="Enter URL to mask (e.g. https://example.com)">
+            <button onclick="processLink()">Generate Masked Link</button>
+        </div>
 
-        <form id="maskForm">
-            <input type="url" 
-                   id="originalUrl" 
-                   placeholder="Enter URL to mask" 
-                   required>
-            <button type="submit">Generate Masked Link</button>
-        </form>
+        <div class="security-alert">
+            ⚠️ Security Notice:
+            <ul>
+                <li>Links are encoded using Base64 (not encryption)</li>
+                <li>Can be decoded with any Base64 tool like 
+                    <a href="https://lifedestroyed.github.io/base64/" style="color: var(--accent);">base64.ld</a>
+                </li>
+                <li>Do not use for sensitive data</li>
+            </ul>
+        </div>
 
-        <div class="result" id="result"></div>
-
-        <div class="mask-info" id="maskInfo">
-            <div class="embed-message">
-                MaskedLink.ld<br><br>
-                This link was masked<br>
-                by the linkmasker.ld<br>
-                from life destroyed.
+        <div id="resultContainer" style="display: none;">
+            <div class="result-box">
+                <span id="maskedLink"></span>
+                <button onclick="copyLink()" style="margin-left: 1rem;">Copy Link</button>
             </div>
-            <p>Redirecting to original URL in <span id="countdown">3</span> seconds...</p>
         </div>
     </div>
 
     <script>
-        const REPO_PATH = '/linkmasker/';
-        
-        const encode = str => {
-            return btoa(encodeURIComponent(str))
-                .replace(/\+/g, '-')
-                .replace(/\//g, '_')
-                .replace(/=+$/g, '');
-        };
+        function processLink() {
+            const originalUrl = document.getElementById('originalUrl').value;
+            if (!validateUrl(originalUrl)) return;
 
-        const decode = str => {
-            str = str.replace(/-/g, '+').replace(/_/g, '/');
-            while (str.length % 4) str += '=';
-            return decodeURIComponent(atob(str));
-        };
+            const encoded = btoa(encodeURIComponent(originalUrl));
+            const maskedUrl = `${window.location.href}?masked=${encoded}`;
+            showResult(maskedUrl);
+        }
 
-        // Обработка текущего URL
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith(REPO_PATH)) {
-            const encodedPart = currentPath.slice(REPO_PATH.length);
-            if (encodedPart) {
-                document.getElementById('maskForm').style.display = 'none';
-                document.getElementById('maskInfo').style.display = 'block';
-
-                try {
-                    const decodedUrl = decode(encodedPart);
-                    let seconds = 3;
-                    const countdownElement = document.getElementById('countdown');
-                    
-                    const countdown = setInterval(() => {
-                        seconds--;
-                        countdownElement.textContent = seconds;
-                        if (seconds <= 0) {
-                            clearInterval(countdown);
-                            window.location.href = decodedUrl;
-                        }
-                    }, 1000);
-                } catch {
-                    document.getElementById('maskInfo').innerHTML = 
-                        '<p class="error">Invalid masked link</p>';
-                }
+        function validateUrl(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                alert('Invalid URL! Please check the link.');
+                return false;
             }
         }
 
-        // Обработка формы
-        document.getElementById('maskForm').addEventListener('submit', e => {
-            e.preventDefault();
-            const originalUrl = document.getElementById('originalUrl').value;
-            const maskedPath = REPO_PATH + encode(originalUrl);
-            const maskedLink = window.location.origin + maskedPath;
-            
-            document.getElementById('result').innerHTML = `
-                Your masked link:<br>
-                <a href="${maskedLink}" target="_blank">${maskedLink}</a>
-                <p class="notice">⚠️ Bookmark this link - it cannot be recovered!</p>
-            `;
-        });
+        function showResult(url) {
+            document.getElementById('maskedLink').textContent = url;
+            document.getElementById('resultContainer').style.display = 'block';
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(document.getElementById('maskedLink').textContent);
+            alert('Link copied to clipboard!');
+        }
+
+        // Auto-redirect logic
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('masked')) {
+                try {
+                    const decoded = decodeURIComponent(atob(params.get('masked')));
+                    if (decoded) window.location.href = decoded;
+                } catch(e) {
+                    alert('Invalid masked link format!');
+                }
+            }
+        })();
     </script>
 </body>
 </html>
