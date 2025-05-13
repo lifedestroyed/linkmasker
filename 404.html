@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Redirecting... - LinkMasker.ld</title>
     <script>
-        // Сохраняем оригинальный путь
-        const originalPath = window.location.pathname;
-        
-        // Перенаправляем на index.html с сохранением пути
-        window.location.href = `/index.html${originalPath}`;
-    </script>
+		const repoName = 'linkmasker'; // Название репозитория
+		const originalPath = window.location.pathname;
+		const redirectPath = originalPath.startsWith(`/${repoName}/`) 
+			? originalPath 
+        : `/${repoName}${originalPath}`;
+		
+		window.location.href = `/index.html${redirectPath}`;
+	</script>
 </head>
 <body>
     <noscript>
