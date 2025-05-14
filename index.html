@@ -3,48 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LD Link Masker</title>
+    <title>linkmasker.ld</title>
     <style>
         :root {
+            --bg: #ffffff;
+            --surface: #f6f8fa;
+            --text: #24292f;
+            --border: #d0d7de;
+            --accent: #0969da;
+            --error: #cf222e;
+            --footer-bg: #f6f8fa;
+        }
+
+        .dark-mode {
             --bg: #0d1117;
             --surface: #161b22;
             --text: #c9d1d9;
-            --accent: #58a6ff;
             --border: #30363d;
-            --error: #da3633;
-        }
-
-        @media (prefers-color-scheme: light) {
-            :root {
-                --bg: #ffffff;
-                --surface: #f6f8fa;
-                --text: #24292f;
-                --border: #d0d7de;
-                --accent: #0969da;
-            }
+            --accent: #58a6ff;
+            --footer-bg: #161b22;
         }
 
         body {
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: 2rem;
-            line-height: 1.6;
-            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            font-family: 'Inter', system-ui;
+            transition: background 0.3s, color 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--surface);
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, #008dff, #a151ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .theme-switcher {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .old-version-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.9rem;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
         }
 
-        h1 {
-            font-size: 2.5rem;
-            text-align: center;
-            background: linear-gradient(90deg, #008dff, #a151ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .mode-switcher {
+            display: flex;
+            gap: 0.5rem;
             margin-bottom: 2rem;
+            background: var(--surface);
+            padding: 0.5rem;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .mode-btn {
+            background: none;
+            border: none;
+            color: var(--text);
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .mode-btn.active {
+            background: var(--accent);
+            color: white;
         }
 
         .input-group {
@@ -58,111 +125,274 @@
             padding: 1rem;
             background: var(--bg);
             border: 2px solid var(--border);
-            border-radius: 0.5rem;
+            border-radius: 8px;
             color: var(--text);
+            font-size: 1rem;
+            transition: border-color 0.3s;
         }
 
-        button {
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        button.primary {
             background: var(--accent);
             color: white;
             border: none;
-            padding: 1rem 2rem;
-            border-radius: 0.5rem;
+            padding: 0.8rem 2rem;
+            border-radius: 8px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: transform 0.2s, opacity 0.2s;
+            font-weight: 500;
         }
 
-        button:hover {
-            transform: translateY(-2px);
+        button.primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
 
         .result-box {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             padding: 1.5rem;
             background: var(--surface);
-            border-radius: 0.5rem;
-            position: relative;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .result-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .result-content a {
+            color: var(--accent);
+            word-break: break-all;
+            text-decoration: none;
         }
 
         .security-alert {
             color: #ffa500;
             border: 2px solid #ffa50040;
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 8px;
             margin: 2rem 0;
+            background: rgba(255, 165, 0, 0.05);
+        }
+
+        footer {
+            background: var(--footer-bg);
+            border-top: 1px solid var(--border);
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .input-group {
+                flex-direction: column;
+            }
+
+            button.primary {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>ld://linkmasker</h1>
-        
-        <div class="input-group">
-            <input type="text" id="originalUrl" placeholder="Enter URL to mask (e.g. https://example.com)">
-            <button onclick="processLink()">Generate Masked Link</button>
+    <header>
+        <div class="header-content">
+            <div class="brand">linkmasker.ld</div>
+            <div class="header-controls">
+                <a href="https://lifedestroyed.github.io/linkmasker/old/" class="old-version-link">Old Version</a>
+                <button class="theme-switcher" onclick="toggleTheme()">
+                    <span>🌓</span>
+                    <span>Toggle Theme</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="mode-switcher">
+            <button class="mode-btn active" onclick="switchMode('mask')">Mask Link</button>
+            <button class="mode-btn" onclick="switchMode('unmask')">Unmask Link</button>
+        </div>
+
+        <!-- Mask Section -->
+        <div id="maskSection" class="converter-section active">
+            <div class="input-group">
+                <input type="text" id="originalUrl" placeholder="https://example.com/rickroll/">
+                <button class="primary" onclick="processLink()">Generate</button>
+            </div>
+            <div id="maskResult" class="result-box"></div>
+        </div>
+
+        <!-- Unmask Section -->
+        <div id="unmaskSection" class="converter-section">
+            <div class="input-group">
+                <input type="text" id="maskedUrl" placeholder="https://lifedestroyed.github.io/linkmasker?masked=YmFzZTY0/">
+                <button class="primary" onclick="unmaskLink()">Decode</button>
+            </div>
+            <div id="unmaskResult" class="result-box"></div>
         </div>
 
         <div class="security-alert">
             ⚠️ Security Notice:
             <ul>
-                <li>Links are encoded using Base64 (not encryption)</li>
-                <li>Can be decoded with any Base64 tool like 
-                    <a href="https://lifedestroyed.github.io/base64/" style="color: var(--accent);">base64.ld</a>
-                </li>
+                <li>Links are Base64 encoded (not encrypted)</li>
+                <li>Can be decoded with any online tool</li>
                 <li>Do not use for sensitive data</li>
             </ul>
         </div>
+    </main>
 
-        <div id="resultContainer" style="display: none;">
-            <div class="result-box">
-                <span id="maskedLink"></span>
-                <button onclick="copyLink()" style="margin-left: 1rem;">Copy Link</button>
+    <footer>
+        <div class="footer-grid" id="dynamic-footer"></div>
+    </footer>
+
+<script>
+    // Theme Management
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    function initTheme() {
+        const savedTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        if (savedTheme === 'dark') document.body.classList.add('dark-mode');
+    }
+
+    // Mode Switching
+    let currentMode = 'mask';
+    function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.converter-section').forEach(section => {
+            section.style.display = 'none';
+        });
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(`${mode}Section`).style.display = 'block';
+        document.querySelector(`button[onclick="switchMode('${mode}')"]`).classList.add('active');
+    }
+
+    // Link Processing
+    function processLink() {
+        const url = document.getElementById('originalUrl').value.trim();
+        if (!validateUrl(url)) return;
+
+        try {
+            const encoded = btoa(encodeURIComponent(url));
+            const maskedUrl = `${window.location.origin}${window.location.pathname}?masked=${encoded}`;
+            showResult('maskResult', maskedUrl, 'Masked URL:');
+        } catch (error) {
+            showError('maskResult', 'Error processing URL');
+        }
+    }
+
+    function unmaskLink() {
+        const input = document.getElementById('maskedUrl').value.trim();
+        try {
+            const url = new URL(input);
+            const encoded = url.searchParams.get('masked');
+            if (!encoded) throw new Error();
+            
+            const decoded = decodeURIComponent(atob(encoded));
+            if (validateUrl(decoded)) {
+                showResult('unmaskResult', decoded, 'Original URL:');
+            }
+        } catch (error) {
+            showError('unmaskResult', 'Invalid masked URL');
+        }
+    }
+
+    // Helpers
+    function validateUrl(url) {
+        try {
+            new URL(url);
+            return true;
+        } catch {
+            showError('Please enter a valid URL');
+            return false;
+        }
+    }
+
+    function showResult(containerId, content, label) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `
+            <div><strong>${label}</strong></div>
+            <div class="result-content">
+                <a href="${content}" target="_blank" rel="noopener">${content}</a>
+                <button class="primary" onclick="copyToClipboard('${content}')">Copy</button>
             </div>
-        </div>
-    </div>
+        `;
+    }
 
-    <script>
-        function processLink() {
-            const originalUrl = document.getElementById('originalUrl').value;
-            if (!validateUrl(originalUrl)) return;
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Copied to clipboard!');
+        });
+    }
 
-            const encoded = btoa(encodeURIComponent(originalUrl));
-            const maskedUrl = `${window.location.href}?masked=${encoded}`;
-            showResult(maskedUrl);
-        }
-
-        function validateUrl(url) {
-            try {
-                new URL(url);
-                return true;
-            } catch {
-                alert('Invalid URL! Please check the link.');
-                return false;
-            }
-        }
-
-        function showResult(url) {
-            document.getElementById('maskedLink').textContent = url;
-            document.getElementById('resultContainer').style.display = 'block';
-        }
-
-        function copyLink() {
-            navigator.clipboard.writeText(document.getElementById('maskedLink').textContent);
-            alert('Link copied to clipboard!');
-        }
-
-        // Auto-redirect logic
-        (function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has('masked')) {
-                try {
-                    const decoded = decodeURIComponent(atob(params.get('masked')));
-                    if (decoded) window.location.href = decoded;
-                } catch(e) {
-                    alert('Invalid masked link format!');
+    // Dynamic Footer
+    async function loadFooter() {
+        const footerData = {
+            "sections": [
+                {
+                    "title": "Documentation",
+                    "links": [
+                        {"name": "GitHub Repo", "url": "https://github.com/lifedestroyed/linkmasker/"},
+                        {"name": "Teletype Guide", "url": "https://sgtr-team.github.io/?redirect=FL19LOO5"}
+                    ]
+                },
+                {
+                    "title": "Community",
+                    "links": [
+                        {"name": "Telegram Channel", "url": "https://t.me/lifedestroyedchannel/"},
+                        {"name": "Creator's Blog", "url": "https://teletype.in/@lifedestroyed/"}
+                    ]
                 }
-            }
-        })();
-    </script>
+            ]
+        };
+
+        const footer = document.getElementById('dynamic-footer');
+        footer.innerHTML = footerData.sections.map(section => `
+            <div class="footer-section">
+                <h3>${section.title}</h3>
+                <ul class="footer-links">
+                    ${section.links.map(link => `
+                        <li><a href="${link.url}" target="_blank" rel="noopener">${link.name}</a></li>
+                    `).join('')}
+                </ul>
+            </div>
+        `).join('');
+    }
+
+    // Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+        initTheme();
+        loadFooter();
+        switchMode('mask'); // Initialize first tab
+    });
+</script>
 </body>
 </html>
